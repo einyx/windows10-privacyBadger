@@ -31,7 +31,9 @@ $tweaks = @(
     "DisableReportsAndSolutionsControl",
     "DisablePCA",
     "DisableSigninAssistant",
-    "DisableWindowsInsider"
+    "DisableWindowsInsider",
+    "DisableRetailDemo",
+    "DisableDiag"
     
     )
 
@@ -41,6 +43,23 @@ Function Restart {
 	Write-Output "Restarting..."
 	Restart-Computer
 }
+Function Pin-App {    param(
+        [string]$appname,
+        [switch]$unpin
+    )
+    try{
+        if ($unpin.IsPresent){
+            ((New-Object -Com Shell.Application).NameSpace('shell:::{4234d49b-0245-4df3-b780-3893943456e1}').Items() | ?{$_.Name -eq $appname}).Verbs() | ?{$_.Name.replace('&','') -match 'Von "Start" lösen|Unpin from Start'} | %{$_.DoIt()}
+            return "App '$appname' unpinned from Start"
+        }else{
+            ((New-Object -Com Shell.Application).NameSpace('shell:::{4234d49b-0245-4df3-b780-3893943456e1}').Items() | ?{$_.Name -eq $appname}).Verbs() | ?{$_.Name.replace('&','') -match 'An "Start" anheften|Pin to Start'} | %{$_.DoIt()}
+            return "App '$appname' pinned to Start"
+        }
+    }catch{
+        Write-Error "Error Pinning/Unpinning App! (App-Name correct?)"
+    }
+}
+
 
 Function DisableUpdates {
 	Write-Output "Disabling driver offering through Windows Update..."
@@ -163,7 +182,20 @@ Function RemoveMsApps {
     Get-AppxPackage -AllUsers *photo* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *camera* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *bing* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *mixed* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *feedback* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *plans* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *skype* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *3d* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *connect* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *started* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *sechealth* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *office* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *paint* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *onedrive* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *calc* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *sketch* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *solitaire* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *soundrec* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *phone* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *GetHelp* | Remove-AppxPackage
@@ -314,13 +346,36 @@ Function DisableWindowsInsider {
     sc delete wisvc
 }
 
-sc delete RetailDemo
-sc delete diagsvc
-sc delete shpamsvc 
-sc delete TermService
-sc delete UmRdpService
-sc delete SessionEnv
-sc delete TroubleshootingSvc
+Function DisableRetailDemo {
+    sc delete RetailDemo
+
+}
+
+
+Function DisableDiag {
+    sc delete diagsvc
+}
+
+Function DisableShp {
+    sc delete shpamsvc 
+}
+
+Function DisableTermService {
+    sc delete TermService
+}
+
+Function DisableRdp {
+    sc delete UmRdpService
+}
+
+Function DisableSessionEnv {
+    sc delete SessionEnv
+}
+
+Function DisableTroubleshooting {
+    sc delete TroubleshootingSvc
+}
+
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "wscsvc" ^| find /i "wscsvc"') do (reg delete %I /f)
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "OneSyncSvc" ^| find /i "OneSyncSvc"') do (reg delete %I /f)
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "MessagingService" ^| find /i "MessagingService"') do (reg delete %I /f)
@@ -329,6 +384,8 @@ sc delete TroubleshootingSvc
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "UnistoreSvc" ^| find /i "UnistoreSvc"') do (reg delete %I /f)
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "BcastDVRUserService" ^| find /i "BcastDVRUserService"') do (reg delete %I /f)
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "Sgrmbroker" ^| find /i "Sgrmbroker"') do (reg delete %I /f)
+
+
 sc delete diagnosticshub.standardcollector.service
 reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules" /v "NumberOfSIUFInPeriod" /t REG_DWORD /d 0 /f
 reg delete "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules" /v "PeriodInNanoSeconds" /f
@@ -383,3 +440,38 @@ schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /disable
 schtasks /Change /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" /disable
 del /F /Q "C:\Windows\System32\Tasks\Microsoft\Windows\SettingSync\*" 
 
+Pin-App "Mail" -unpin
+Pin-App "Store" -unpin
+Pin-App "Calendar" -unpin
+Pin-App "Microsoft Edge" -unpin
+Pin-App "Photos" -unpin
+Pin-App "Cortana" -unpin
+Pin-App "Weather" -unpin
+Pin-App "Phone Companion" -unpin
+Pin-App "Music" -unpin
+Pin-App "xbox" -unpin
+Pin-App "movies & tv" -unpin
+Pin-App "microsoft solitaire collection" -unpin
+Pin-App "money" -unpin
+Pin-App "get office" -unpin
+Pin-App "onenote" -unpin
+Pin-App "news" -unpin
+Pin-App "Mail" -unpin
+Pin-App "Store" -unpin
+Pin-App "Calendar" -unpin
+Pin-App "Microsoft Edge" -unpin
+Pin-App "Photos" -unpin
+Pin-App "Cortana" -unpin
+Pin-App "Weather" -unpin
+Pin-App "Phone Companion" -unpin
+Pin-App "Music" -unpin
+Pin-App "xbox" -unpin
+Pin-App "movies & tv" -unpin
+Pin-App "microsoft solitaire collection" -unpin
+Pin-App "money" -unpin
+Pin-App "get office" -unpin
+Pin-App "onenote" -unpin
+Pin-App "news" -unpin 
+Pin-App "Paint 3D" -unpin
+
+$tweaks
