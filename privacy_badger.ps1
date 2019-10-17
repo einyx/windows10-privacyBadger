@@ -33,8 +33,13 @@ $tweaks = @(
     "DisableSigninAssistant",
     "DisableWindowsInsider",
     "DisableRetailDemo",
-    "DisableDiag"
-    
+    "DisableDiag",
+    "DisableShp",
+    "DisableTermService",
+    "DisableRdp",
+    "DisableSessionEnv",
+    "DisableTroubleshooting",
+    "DisableTile"
     )
 
 
@@ -187,6 +192,7 @@ Function RemoveMsApps {
     Get-AppxPackage -AllUsers *plans* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *skype* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *3d* | Remove-AppxPackage
+    Get-AppxPackage -AllUsers *advert* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *connect* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *started* | Remove-AppxPackage
     Get-AppxPackage -AllUsers *sechealth* | Remove-AppxPackage
@@ -376,6 +382,13 @@ Function DisableTroubleshooting {
     sc delete TroubleshootingSvc
 }
 
+Function DisableTile {
+    New-Item -Force -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
+    New-ItemProperty -Force -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "NoTileApplicationNotification" -Value "1" -PropertyType "DWord"
+    New-Item -Force -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer"
+    New-ItemProperty -Force -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "ClearTilesOnExit" -Value "1" -PropertyType "DWord"
+}
+
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "wscsvc" ^| find /i "wscsvc"') do (reg delete %I /f)
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "OneSyncSvc" ^| find /i "OneSyncSvc"') do (reg delete %I /f)
 #for /f "tokens=1" %I in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /k /f "MessagingService" ^| find /i "MessagingService"') do (reg delete %I /f)
@@ -474,4 +487,4 @@ Pin-App "onenote" -unpin
 Pin-App "news" -unpin 
 Pin-App "Paint 3D" -unpin
 
-$tweaks
+$tweaks | ForEach { Invoke-Expression $_ }
